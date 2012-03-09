@@ -6,7 +6,7 @@ from gensim import utils
 from simserver import SessionServer
 
 
-class SearchServer:
+class IndexContent:
 
     def __init__(self):
         self.service = SessionServer('SearchServer/')
@@ -25,11 +25,6 @@ class SearchServer:
         self.service.train(corpus, method='lsi')
         self.service.index(corpus)
 
-    def query(self):
-        user_string = raw_input('Enter query: ')
-        doc = {'tokens': utils.simple_preprocess(user_string)}
-        for results in self.service.find_similar(doc, min_score=0.4, max_results=50):
-            print results[0]
 
 #    def add_new_doc(self, new_doc):
  #       doc_name = re.sub('\s', '/', new_doc)
@@ -38,6 +33,4 @@ class SearchServer:
 
 
 if __name__ == '__main__':
-    searchserver = SearchServer()
-    searchserver.generate_index()
-    searchserver.query()
+    indexcontent = IndexContent()

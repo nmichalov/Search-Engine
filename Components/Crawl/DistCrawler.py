@@ -10,6 +10,7 @@ from BeautifulSoup import BeautifulSoup
 from time import sleep
 from DataReduce import DataReduce
 
+
 class Crawler:
 
     def __init__(self):
@@ -44,15 +45,13 @@ class Crawler:
                     else:
                         link = 'http://%s' % (urlparse.urlparse(link.url).netloc)
                         self.datareduce.reduce_links(link)
-                        
             sleep(1)
         if len(self.internal_urls) > 0:
             next_target = self.internal_urls.pop()
             self.crawl(next_target)
-        else:
+        else:        
             self.datareduce.return_urls()
-
-
+        
 if __name__ == '__main__':
     hostname = raw_input('enter host ip: ')
     crawler = Crawler()
