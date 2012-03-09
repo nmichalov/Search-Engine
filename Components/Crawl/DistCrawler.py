@@ -54,10 +54,11 @@ class Crawler:
 
 
 if __name__ == '__main__':
+    hostname = raw_input('enter host ip: ')
     crawler = Crawler()
     Pyro4.Daemon.serveSimple(
             {
                 crawler: 'Crawler'
             },
-            host = '192.168.1.103'
+            host = hostname,
             ns = True, verbose = True)

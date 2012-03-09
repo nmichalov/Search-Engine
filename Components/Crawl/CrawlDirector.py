@@ -30,8 +30,9 @@ class Director:
         visited_list.close()
 
 def main():
+    ns_host = raw_input('enter nameserver ip: ')
     director = Director()
-    ns = Pyro4.naming.locateNS('192.168.1.103')
+    ns = Pyro4.naming.locateNS(ns_host)
     crawler_uri = ns.lookup('Crawler')
     crawler = Pyro4.Proxy(crawler_uri)
     urls = []
