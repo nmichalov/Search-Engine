@@ -34,3 +34,4 @@ class IndexContent:
 
 if __name__ == '__main__':
     indexcontent = IndexContent()
+    indexcontent.generate_index()

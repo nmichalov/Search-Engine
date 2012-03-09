@@ -42,7 +42,10 @@ def main():
         director.add_new(line)
     target_urls = director.new_urls()
     for link in target_urls:
-         crawler.crawl(link)
+        try:
+            crawler.crawl(link)
+        except:
+            pass
     director.update_record()
 
 if __name__ == "__main__":
