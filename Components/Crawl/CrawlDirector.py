@@ -31,7 +31,7 @@ class Director:
 
 def main():
     director = Director()
-    ns = Pyro4.locateNS()
+    ns = Pyro4.naming.locateNS('192.168.1.103')
     crawler_uri = ns.lookup('Crawler')
     crawler = Pyro4.Proxy(crawler_uri)
     urls = []
