@@ -4,6 +4,7 @@ import sys
 import Pyro4
 import os
 import cPickle
+import threading
 
 class Director:
     
@@ -31,21 +32,28 @@ class Director:
 
 def main():
     ns_host = raw_input('enter nameserver ip: ')
+    crawler_count = int(raw_input('enter the number of crawler instances: '))
     director = Director()
     ns = Pyro4.naming.locateNS(ns_host)
-    crawler_uri = ns.lookup('Crawler')
-    crawler = Pyro4.Proxy(crawler_uri)
     urls = []
     url_file = open('URLlist', 'r')
     for line in url_file:
         line = line.strip()
         director.add_new(line)
     target_urls = director.new_urls()
-    for link in target_urls:
-        try:
-            crawler.crawl(link)
-        except:
-            pass
+    batch_size = len(target_urls)/crawler_count
+    batch_dict = {}
+    for i in range(crawler_count):
+        if i < (crawler_count - 1):
+            batch_dict[i] = target_urls[i:(i+1)*batch_size]
+        else:
+            batch_dict[i] = target_urls[i::]
+    for i in range(crawler_count):
+        print 'Enter identifier for crawler %s' % (str(i))
+        crawler_ident = raw_input(': ')
+        crawler_uri = ns.lookup('Crawler'+crawler_ident)
+        crawler = Pyro4.Proxy(crawler_uri)
+        threading.Thread.start(crawler.start_crawl(batch_dict[i]))
     director.update_record()
 
 if __name__ == "__main__":

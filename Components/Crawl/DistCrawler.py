@@ -20,6 +20,12 @@ class Crawler:
         self.br = mechanize.Browser()
         self.br.addheaders = [('user-agent', 'https://github.com/nmichalov')]
 
+    def start_crawl(self, target_list):
+        self.internal_urls = target_list
+        print self.internal_urls
+        first_target = self.internal_urls.pop()
+        self.crawl(first_target)
+
     def crawl(self, target):
         self.visited.append(target)
         current_url_parts = urlparse.urlparse(target)
@@ -54,10 +60,11 @@ class Crawler:
         
 if __name__ == '__main__':
     hostname = raw_input('enter host ip: ')
+    ident = raw_input('enter crawler identifier: ')
     crawler = Crawler()
     Pyro4.Daemon.serveSimple(
             {
-                crawler: 'Crawler'
+                crawler: 'Crawler%s' % (ident)
             },
             host = hostname,
             ns = True, verbose = True)
