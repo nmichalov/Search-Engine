@@ -8,3 +8,5 @@ Test/
 CrawlData/
 SearchServer/
 OldCrawlData/
+OldData/
+Visited.pkl
