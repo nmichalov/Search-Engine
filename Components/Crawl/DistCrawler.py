@@ -20,12 +20,6 @@ class Crawler:
         self.br = mechanize.Browser()
         self.br.addheaders = [('user-agent', 'https://github.com/nmichalov')]
 
-    def start_crawl(self, target_list):
-        self.internal_urls = target_list
-        print self.internal_urls
-        first_target = self.internal_urls.pop()
-        self.crawl(first_target)
-
     def crawl(self, target):
         self.visited.append(target)
         current_url_parts = urlparse.urlparse(target)

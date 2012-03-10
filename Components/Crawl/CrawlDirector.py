@@ -30,31 +30,50 @@ class Director:
         cPickle.dump(self.visited_urls, visited_list)
         visited_list.close()
 
-def main():
-    ns_host = raw_input('enter nameserver ip: ')
-    crawler_count = int(raw_input('enter the number of crawler instances: '))
-    director = Director()
-    ns = Pyro4.naming.locateNS(ns_host)
-    urls = []
-    url_file = open('URLlist', 'r')
-    for line in url_file:
-        line = line.strip()
-        director.add_new(line)
-    target_urls = director.new_urls()
-    batch_size = len(target_urls)/crawler_count
-    batch_dict = {}
-    for i in range(crawler_count):
-        if i < (crawler_count - 1):
-            batch_dict[i] = target_urls[i:(i+1)*batch_size]
-        else:
-            batch_dict[i] = target_urls[i::]
-    for i in range(crawler_count):
-        print 'Enter identifier for crawler %s' % (str(i))
-        crawler_ident = raw_input(': ')
-        crawler_uri = ns.lookup('Crawler'+crawler_ident)
-        crawler = Pyro4.Proxy(crawler_uri)
-        threading.Thread.start(crawler.start_crawl(batch_dict[i]))
-    director.update_record()
+
+class CrawlerThread(threading.Thread):
+    
+    def __init__(self, nameserver, crawler_ident, target_urls):
+        threading.Thread.__init__(self)
+        crawler_uri = nameserver.lookup('Crawler'+crawler_ident)
+        self.crawler = Pyro4.Proxy(crawler_uri)
+        self.target_urls = target_urls
+    
+    def run(self):
+        while self.target_urls:
+            target = self.target_urls.pop()
+            self.crawler.crawl(target)
+
+
+class Executive:
+    def __init__(self):
+        ns_host = raw_input('enter nameserver ip: ')
+        self.crawler_count = int(raw_input('enter the number of crawler instances: '))
+        self.director = Director()
+        self.ns = Pyro4.naming.locateNS(ns_host)
+        self.urls = [] #Do I use this?
+    def begin(self):
+        url_file = open('URLlist', 'r')
+        for line in url_file:
+            line = line.strip()
+            self.director.add_new(line)
+        target_urls = self.director.new_urls()
+        batch_size = len(target_urls)/self.crawler_count
+        batch_dict = {}
+        for i in range(self.crawler_count):
+            if i < (self.crawler_count - 1):
+                batch_dict[i] = target_urls[i:(i+1)*batch_size]
+            else:
+                batch_dict[i] = target_urls[i::]
+        for i in range(self.crawler_count):
+            print 'Enter identifier for crawler %s' % (str(i))
+            crawler_identifier = raw_input(': ')
+            crawler = CrawlerThread(self.ns, crawler_identifier, batch_dict[i])
+            crawler.start()
+    def update(self):
+        self.director.update_record()
 
 if __name__ == "__main__":
-    main()
+    executive = Executive()
+    executive.begin()
+    executive.update()

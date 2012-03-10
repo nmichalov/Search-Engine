@@ -10,8 +10,7 @@ class QueryIndex:
     def __init__(self):
         self.service = SessionServer('SearchServer/')
 
-    def query(self):
-        user_query = raw_input('Enter search query: ')
+    def query(self, user_query):
         doc = {'tokens': utils.simple_preprocess(user_query)}
         results = self.service.find_similar(doc, min_score=0.4, max_results=50)
         if len(results) > 0:
@@ -22,4 +21,6 @@ class QueryIndex:
 
 if __name__ == '__main__':
     queryindex = QueryIndex()
-    queryindex.query()
+    print 'What are you looking for?'
+    user_input = raw_input(': ')
+    queryindex.query(user_input)
