@@ -51,7 +51,6 @@ class Executive:
         self.crawler_count = int(raw_input('enter the number of crawler instances: '))
         self.director = Director()
         self.ns = Pyro4.naming.locateNS(ns_host)
-        self.urls = [] #Do I use this?
     def begin(self):
         url_file = open('URLlist', 'r')
         for line in url_file:
