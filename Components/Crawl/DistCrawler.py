@@ -50,7 +50,7 @@ class Crawler:
             next_target = self.internal_urls.pop()
             self.crawl(next_target)
         else:        
-            self.datareduce.return_urls()
+            return self.datareduce.return_urls()
         
 if __name__ == '__main__':
     hostname = raw_input('enter host ip: ')

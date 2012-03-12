@@ -27,7 +27,8 @@ class DataReduce:
             self.unique_domains.append(crawl_links)
 
     def return_urls(self):
-            url_file = open('URLlist', 'a')
-            for url in self.unique_domains:
-                url_file.write(url+'\n')
-            url_file.close()
+        return self.unique_domains
+            #url_file = open('URLlist', 'a')
+            #for url in self.unique_domains:
+            #    url_file.write(url+'\n')
+            #url_file.close()
