@@ -21,20 +21,20 @@ class Crawler:
         self.br.addheaders = [('user-agent', 'https://github.com/nmichalov')]
 
     def crawl(self, target):
-        self.visited.append(target)
         current_url_parts = urlparse.urlparse(target)
         try:
             response = self.br.open(target)
         except urllib2.HTTPError, error:
             pass
         else:
+            self.visited.append(target)
             soup = BeautifulSoup(response)
             page_content = soup.findAll('p')
             for p_tag in page_content:
                 p_tag = re.sub('\<\/?p\>|\<a href.*\<\/a\>', '', str(p_tag))
                 p_tag = re.sub('\<\/?[a-zA-Z0-9]+\>', '', p_tag)
                 p_tag = re.sub('[^A-Za-z]', ' ', p_tag)
-                self.datareduce.reduce_content('Content#%s#%s' % (target, p_tag.lower())) 
+                self.datareduce.reduce_content(p_tag.lower()) 
             for link in list(self.br.links()):
                 if '@' not in link.url and '?' not in link.url and '#' not in link.url:
                     link_parts =  urlparse.urlparse(link.url)
@@ -49,8 +49,10 @@ class Crawler:
         if len(self.internal_urls) > 0:
             next_target = self.internal_urls.pop()
             self.crawl(next_target)
-        else:        
-            return self.datareduce.return_urls()
+
+    def return_urls(self):        
+        return self.datareduce.return_urls()
+
         
 if __name__ == '__main__':
     hostname = raw_input('enter host ip: ')

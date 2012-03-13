@@ -2,6 +2,7 @@
 
 import os
 import re
+import Pyro4
 from gensim import utils
 from simserver import SessionServer
 
@@ -12,16 +13,17 @@ class IndexContent:
         self.service = SessionServer('SearchServer/')
     
 
+    def yield_page_text(self):
+        for page_file in os.listdir('CrawlData'):
+            content = open('CrawlData/'+page_file, 'r')
+            page_content = content.read()
+            content.close()
+            page_url = re.sub('\s', '/', page_file)
+            yield page_url, page_content
+
     def generate_index(self):
-        def page_text():
-            for page_file in os.listdir('CrawlData'):
-                content = open('CrawlData/'+page_file, 'r')
-                page_content = content.read()
-                content.close()
-                page_url = re.sub('\s', '/', page_file)
-                yield page_url, page_content
         corpus = [{'id': '%s' % url, 'tokens': utils.simple_preprocess(text)}
-                for url, text in page_text()]
+                for url, text in self.yield_page_text()]
         self.service.train(corpus, method='lsi')
         self.service.index(corpus)
 
@@ -33,5 +35,12 @@ class IndexContent:
 
 
 if __name__ == '__main__':
+    hostname = raw_input('enter host ip: ')
+    ident = raw_input('enter indexer identifier: ')
     indexcontent = IndexContent()
-    indexcontent.generate_index()
+    Pyro4.Daemon.serveSimple(
+            {
+                indexcontent: 'IndexContent%s' % (ident)
+            },
+            host = hostname,
+            ns = True, verbose = True)

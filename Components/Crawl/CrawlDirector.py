@@ -6,6 +6,8 @@ import os
 import cPickle
 import threading
 import Queue
+import time
+from DataReduce import DataReduce
 
 class Director:
     
@@ -39,11 +41,23 @@ class CrawlerThread(threading.Thread):
         crawler_uri = nameserver.lookup('Crawler'+crawler_ident)
         self.queue = queue
         self.crawler = Pyro4.Proxy(crawler_uri)
-    
+        self.crawler_ident = crawler_ident
+
     def run(self):
-        target = self.queue.get()
-        self.crawler.crawl(target)
-        self.que.task_done()
+        while 1:
+            target = self.queue.get()
+            print target + self.crawler_ident
+            try:
+                self.crawler.crawl(target)
+            except:
+                pass
+            else:
+                url_file = open('URLlist'+self.crawler_ident, 'a')
+                for line in self.crawler.return_urls():
+                    url_file.write(line+'\n')
+                url_file.close()
+                time.sleep(3)
+            self.queue.task_done()
 
 
 class Executive:
@@ -53,21 +67,24 @@ class Executive:
         self.director = Director()
         self.ns = Pyro4.naming.locateNS(ns_host)
         self.queue = Queue.Queue()
+
     def begin(self):
-        url_file = open('URLlist', 'r')
-        for line in url_file:
-            line = line.strip()
-            self.director.add_new(line)
+        current = os.getcwd()
+        for document in os.listdir(current):
+            if document.startswith('URLlist'):
+                url_file = open(document, 'r')
+                for line in url_file:
+                    line = line.strip()
+                    self.director.add_new(line)
         target_urls = self.director.new_urls()
-        for i in range(self.crawler_count):
-            print 'Enter identifier for crawler %s' % (str(i))
-            crawler_identifier = raw_input(': ')
-            crawler = CrawlerThread(self.ns, crawler_identifier, self.queue)
-            crawler.setDaemon(True)
-            crawler.start()
         for url in target_urls:
             self.queue.put(url)
+        for i in range(self.crawler_count):
+            crawler = CrawlerThread(self.ns, str(i), self.queue)
+            crawler.setDaemon(True)
+            crawler.start()
         self.queue.join()
+
     def update(self):
         self.director.update_record()
 
