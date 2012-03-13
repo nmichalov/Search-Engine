@@ -24,11 +24,11 @@ class QueryThread(threading.Thread):
 
 class IndexData:
     
-    def __init__(self, queue):
-        ns_host = raw_input('enter nameserver ip: ')
-        self.query_count = int(raw_input('Enter number of QueryIndexes: '))
+    def __init__(self, nameserver_ip, query_count):
+        self.queue = Queue.Queue()
+        ns_host = nameserver_ip
+        self.query_count = query_count
         self.ns = Pyro4.naming.locateNS(ns_host)
-        self.queue = queue
         user_query = raw_input('Search for: ')
         for i in range(self.query_count):
             self.queue.put(user_query)
@@ -38,18 +38,32 @@ class IndexData:
         for i in range(self.query_count):
             queryindex = QueryThread(self.ns, str(i), self.results, self.queue)
             queryindex.start()
+        self.queue.join()
 
     def return_results(self):
-        results = sorted(self.results, reverse=True)
-        for entry in results:
-            print entry[1]
+        if len(self.results) > 0:
+            results = sorted(self.results, reverse=True)
+            for entry in results:
+                print entry[1]
+        else:
+            print 'no good matches found'
 
             
 
 
 if __name__ == "__main__":
-    queue = Queue.Queue()
-    queryindex = IndexData(queue)
-    queryindex.begin()
-    queue.join()
-    queryindex.return_results()
+    ns_ip = raw_input('Enter nameserver IP: ')
+    qi_count = int(raw_input('Enter the number of QueryIndexes: '))
+    search = True
+    while search:
+        queryindex = IndexData(ns_ip, qi_count)
+        queryindex.begin()
+        queryindex.return_results()
+        print 'search again?(y/n)'
+        resp = raw_input(': ')
+        resp = resp.lower()
+        if resp == 'n' or resp == 'no':
+            search = False
+        else:
+            pass
+    print 'Goodbye'
